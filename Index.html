@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>B4P Inventory</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --b4p-blue: #0069f3;
+      --b4p-navy: #000e3f;
+      --b4p-deep: #0035a2;
+      --b4p-purple: #373c82;
+      --b4p-light: #cbdbff;
+      --b4p-ice: #e8efff;
+      --b4p-ghost: #f3f6ff;
+      --b4p-white: #ffffff;
+      --b4p-slate: #475569;
+      --b4p-slate-light: #94a3b8;
+      --b4p-border: #dde4f0;
+      --b4p-text: #0f172a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      background: var(--b4p-ghost); color: var(--b4p-text);
+      min-height: 100vh; -webkit-tap-highlight-color: transparent;
+    }
+    .header {
+      position: sticky; top: 0; z-index: 10;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px; background: var(--b4p-navy);
+      border-bottom: 2px solid var(--b4p-blue);
+    }
+    .header-left { display: flex; align-items: center; gap: 8px; }
+    .header-logo { display: flex; align-items: center; gap: 8px; }
+    .header-title { font-size: 14px; font-weight: 700; color: #fff; letter-spacing: 0.5px; }
+    .header-divider { width: 1px; height: 20px; background: rgba(255,255,255,0.2); margin: 0 4px; }
+    .badge {
+      display: inline-block; padding: 3px 9px; border-radius: 6px;
+      font-size: 11px; font-weight: 600; background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.85);
+    }
+    .badge-sec-a { background: rgba(0,105,243,0.3); color: #93bbff; }
+    .badge-sec-b { background: rgba(251,191,36,0.25); color: #fcd34d; }
+    .badge-green { background: rgba(52,211,153,0.25); color: #6ee7b7; }
+    .gear-btn { background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; padding: 4px; transition: color 0.15s; }
+    .gear-btn:active { color: #fff; }
+    .screen { min-height: 100vh; }
+    .body { padding: 20px 16px 40px; max-width: 480px; margin: 0 auto; }
+    .center { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 300px; }
+    .setup-screen {
+      display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px;
+      background: linear-gradient(160deg, var(--b4p-navy) 0%, var(--b4p-deep) 60%, var(--b4p-purple) 100%);
+    }
+    .setup-card {
+      background: var(--b4p-white); border-radius: 20px; padding: 36px 24px;
+      width: 100%; max-width: 420px; box-shadow: 0 4px 32px rgba(0,14,63,0.25);
+    }
+    .setup-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+    .setup-logo-text { font-size: 11px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--b4p-deep); }
+    .setup-title { font-size: 24px; font-weight: 700; margin: 0 0 4px; color: var(--b4p-navy); }
+    .setup-desc { color: var(--b4p-slate); font-size: 14px; margin: 0 0 28px; line-height: 1.5; }
+    label.field-label { display: block; font-size: 12px; font-weight: 600; color: var(--b4p-slate); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    input.field-input {
+      width: 100%; padding: 12px 14px; border-radius: 10px;
+      border: 1.5px solid var(--b4p-border); font-size: 15px; outline: none;
+      background: var(--b4p-white); color: var(--b4p-text); transition: border-color 0.15s; font-family: inherit;
+    }
+    input.field-input:focus { border-color: var(--b4p-blue); box-shadow: 0 0 0 3px rgba(0,105,243,0.1); }
+    .mt-16 { margin-top: 16px; } .mt-20 { margin-top: 20px; } .mt-24 { margin-top: 24px; } .mt-28 { margin-top: 28px; }
+    .section-row { display: flex; gap: 10px; }
+    .section-btn {
+      flex: 1; padding: 12px 16px; border-radius: 10px; border: 2px solid var(--b4p-border);
+      font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s;
+      font-family: inherit; background: var(--b4p-white); color: var(--b4p-slate);
+    }
+    .section-btn.active { background: var(--b4p-navy); color: #fff; border-color: var(--b4p-navy); }
+    .camera-btn {
+      width: 100%; padding: 40px 20px; border-radius: 16px;
+      border: 2px dashed var(--b4p-light); background: var(--b4p-ghost);
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      color: var(--b4p-deep); cursor: pointer; transition: all 0.15s;
+    }
+    .camera-btn:active { background: var(--b4p-ice); border-color: var(--b4p-blue); }
+    .camera-label { font-size: 15px; font-weight: 600; margin-top: 6px; }
+    .camera-hint { font-size: 12px; color: var(--b4p-slate-light); }
+    .preview-wrap { position: relative; }
+    .preview-img { width: 100%; max-height: 240px; object-fit: cover; border-radius: 14px; border: 2px solid var(--b4p-border); }
+    .retake-btn {
+      position: absolute; bottom: 10px; right: 10px;
+      padding: 6px 14px; border-radius: 8px; border: none;
+      background: rgba(0,14,63,0.7); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit;
+    }
+    .btn-primary {
+      width: 100%; padding: 14px 20px; border-radius: 12px; border: none;
+      background: var(--b4p-blue); color: #fff;
+      font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.15s; font-family: inherit;
+    }
+    .btn-primary:active:not(:disabled) { background: var(--b4p-deep); transform: scale(0.98); }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-secondary {
+      width: 100%; padding: 12px 20px; border-radius: 12px;
+      border: 1.5px solid var(--b4p-border); background: var(--b4p-white); color: var(--b4p-slate);
+      font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.15s; font-family: inherit;
+    }
+    .item-row { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 20px; }
+    .item-thumb { width: 72px; height: 72px; object-fit: cover; border-radius: 10px; flex-shrink: 0; border: 2px solid var(--b4p-border); }
+    .item-name { font-size: 15px; font-weight: 600; }
+    .item-meta { font-size: 13px; color: var(--b4p-slate); margin-top: 2px; }
+    .confidence { display: inline-block; margin-top: 6px; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
+    .conf-high { background: #dcfce7; color: #166534; }
+    .conf-medium { background: #fef9c3; color: #854d0e; }
+    .conf-low { background: #fee2e2; color: #991b1b; }
+
+    /* ── Category: Locked Badge ── */
+    .cat-locked-wrap { margin-bottom: 20px; }
+    .cat-locked-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 16px; border-radius: 10px; font-size: 15px; font-weight: 700;
+      border: 2px solid; transition: all 0.15s;
+    }
+    .cat-locked-check { display: flex; align-items: center; }
+    .cat-override-tag {
+      display: inline-block; font-size: 10px; font-weight: 600; padding: 1px 6px;
+      border-radius: 4px; background: #fef3c7; color: #92400e; margin-left: 6px; vertical-align: middle;
+    }
+    .cat-edit-link {
+      display: inline-block; margin-top: 8px; font-size: 12px; color: var(--b4p-slate-light);
+      cursor: pointer; border: none; background: none; font-family: inherit; padding: 0;
+      transition: color 0.15s;
+    }
+    .cat-edit-link:hover { color: var(--b4p-blue); }
+
+    /* ── Category: Expanded Chips ── */
+    .cat-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; margin-bottom: 20px; }
+    .cat-chip {
+      padding: 8px 14px; border-radius: 10px; border: 2px solid var(--b4p-border);
+      background: var(--b4p-white); color: var(--b4p-slate);
+      font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.15s; font-family: inherit;
+    }
+
+    .toggle-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 16px; border-radius: 12px; cursor: pointer; transition: all 0.15s; margin-bottom: 12px;
+      border: 1.5px solid var(--b4p-border); background: var(--b4p-white);
+    }
+    .toggle-row.active-amber { background: #fef3c7; border-color: #f59e0b; }
+    .toggle-row.active-red { background: #fee2e2; border-color: #ef4444; }
+    .toggle-box {
+      width: 22px; height: 22px; border-radius: 6px; border: 2px solid #cbd5e1; background: var(--b4p-white);
+      display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0;
+    }
+    .toggle-title { font-size: 14px; font-weight: 600; }
+    .toggle-desc { font-size: 12px; color: var(--b4p-slate); }
+    .error-box { padding: 12px 14px; border-radius: 10px; margin-bottom: 16px; background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; font-size: 13px; }
+    .spinner { width: 32px; height: 32px; border-radius: 50%; border: 3px solid var(--b4p-light); border-top-color: var(--b4p-blue); animation: spin 0.8s linear infinite; margin: 0 auto; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .success-icon { color: var(--b4p-blue); margin-bottom: 4px; }
+    .success-title { font-size: 22px; font-weight: 700; margin: 12px 0 6px; color: var(--b4p-navy); }
+    .success-badges { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+    .success-badges .badge { background: var(--b4p-ice); color: var(--b4p-deep); }
+    .full-note { font-size: 13px; color: #f59e0b; font-weight: 500; margin-top: 12px; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<svg style="display:none">
+  <defs>
+    <symbol id="b4p-logo" viewBox="0 0 40 40">
+      <circle cx="20" cy="20" r="18" fill="none" stroke="#0069f3" stroke-width="2"/>
+      <ellipse cx="20" cy="20" rx="10" ry="18" fill="none" stroke="#0069f3" stroke-width="1.5"/>
+      <line x1="2" y1="14" x2="38" y2="14" stroke="#0069f3" stroke-width="1.2"/>
+      <line x1="2" y1="26" x2="38" y2="26" stroke="#0069f3" stroke-width="1.2"/>
+      <line x1="20" y1="2" x2="20" y2="38" stroke="#0069f3" stroke-width="1.2"/>
+    </symbol>
+    <symbol id="b4p-logo-white" viewBox="0 0 40 40">
+      <circle cx="20" cy="20" r="18" fill="none" stroke="#fff" stroke-width="2"/>
+      <ellipse cx="20" cy="20" rx="10" ry="18" fill="none" stroke="#fff" stroke-width="1.5"/>
+      <line x1="2" y1="14" x2="38" y2="14" stroke="#fff" stroke-width="1.2"/>
+      <line x1="2" y1="26" x2="38" y2="26" stroke="#fff" stroke-width="1.2"/>
+      <line x1="20" y1="2" x2="20" y2="38" stroke="#fff" stroke-width="1.2"/>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- SETUP -->
+<div id="screen-setup" class="screen setup-screen">
+  <div class="setup-card">
+    <div class="setup-logo">
+      <svg width="36" height="36"><use href="#b4p-logo"/></svg>
+      <div><div class="setup-logo-text">Blueprints for Pangaea</div></div>
+    </div>
+    <h1 class="setup-title">Inventory Setup</h1>
+    <p class="setup-desc">Configure before you start scanning. Change anytime from the gear icon.</p>
+    <label class="field-label">Pallet Number</label>
+    <input class="field-input" id="setup-pallet" type="number" inputmode="numeric" placeholder="e.g. 10">
+    <label class="field-label mt-20">Section</label>
+    <div class="section-row">
+      <button class="section-btn active" id="setup-sec-a" onclick="setSection('A')">Section A</button>
+      <button class="section-btn" id="setup-sec-b" onclick="setSection('B')">Section B</button>
+    </div>
+    <button class="btn-primary mt-28" onclick="saveSetup()">Start Inventorying</button>
+  </div>
+</div>
+
+<!-- FORM -->
+<div id="screen-form" class="screen hidden">
+  <div class="header">
+    <div class="header-left">
+      <div class="header-logo"><svg width="26" height="26"><use href="#b4p-logo-white"/></svg><span class="header-title">B4P Inventory</span></div>
+      <div class="header-divider"></div>
+      <div class="badge" id="hdr-pallet"></div>
+      <div class="badge" id="hdr-section"></div>
+      <div class="badge badge-green hidden" id="hdr-count"></div>
+    </div>
+    <button class="gear-btn" onclick="showSetup()"><svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></button>
+  </div>
+  <div class="body">
+    <input type="file" id="file-input" accept="image/*" capture="environment" style="display:none" onchange="handleImage(this)">
+    <div id="camera-area">
+      <button class="camera-btn" onclick="document.getElementById('file-input').click()">
+        <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z"/></svg>
+        <span class="camera-label">Take Photo</span>
+        <span class="camera-hint">of the product label</span>
+      </button>
+    </div>
+    <div id="preview-area" class="hidden">
+      <div class="preview-wrap">
+        <img id="preview-img" class="preview-img" src="" alt="Preview">
+        <button class="retake-btn" onclick="retakePhoto()">Retake</button>
+      </div>
+    </div>
+    <label class="field-label mt-20">Quantity *</label>
+    <input class="field-input" id="form-qty" type="number" inputmode="numeric" placeholder="How many units?">
+    <label class="field-label mt-16">Expiration Date</label>
+    <input class="field-input" id="form-exp" type="date">
+    <button class="btn-primary mt-24" id="btn-analyze" onclick="analyzeImage()" disabled>Analyze & Continue</button>
+  </div>
+</div>
+
+<!-- PROCESSING -->
+<div id="screen-processing" class="screen hidden">
+  <div class="header"><div class="header-left"><div class="header-logo"><svg width="26" height="26"><use href="#b4p-logo-white"/></svg><span class="header-title">Analyzing...</span></div></div></div>
+  <div class="body center" style="min-height:calc(100vh - 50px);background:var(--b4p-ghost);">
+    <img id="proc-thumb" src="" alt="Analyzing" style="width:120px;height:120px;object-fit:cover;border-radius:12px;margin-bottom:24px;border:2px solid var(--b4p-light);">
+    <div class="spinner"></div>
+    <p style="color:var(--b4p-navy);margin-top:16px;font-size:15px;font-weight:600;">AI is categorizing this item...</p>
+    <p style="color:var(--b4p-slate-light);font-size:13px;margin-top:4px;">This takes a few seconds</p>
+  </div>
+</div>
+
+<!-- CONFIRM -->
+<div id="screen-confirm" class="screen hidden">
+  <div class="header">
+    <div class="header-left">
+      <div class="header-logo"><svg width="26" height="26"><use href="#b4p-logo-white"/></svg><span class="header-title">Confirm</span></div>
+      <div class="header-divider"></div>
+      <div class="badge" id="hdr2-pallet"></div>
+      <div class="badge" id="hdr2-section"></div>
+    </div>
+  </div>
+  <div class="body">
+    <div id="confirm-error" class="error-box hidden"></div>
+    <div class="item-row">
+      <img id="conf-thumb" class="item-thumb" src="" alt="Item">
+      <div>
+        <div class="item-name" id="conf-product"></div>
+        <div class="item-meta" id="conf-meta"></div>
+        <div id="conf-confidence"></div>
+      </div>
+    </div>
+
+    <!-- Category: locked badge + expand -->
+    <label class="field-label">Category</label>
+    <div class="cat-locked-wrap" id="cat-locked-wrap">
+      <div id="cat-locked-badge" class="cat-locked-badge"></div>
+      <span id="cat-override-tag" class="cat-override-tag hidden">manual</span>
+      <br>
+      <button class="cat-edit-link" id="cat-edit-link" onclick="toggleCatEdit()">Change manually</button>
+    </div>
+    <div class="cat-row hidden" id="cat-row"></div>
+
+<div id="box-assignment" class="box-assignment hidden">
+  <div class="box-icon">📦</div>
+  <div>
+    <div class="box-label">PUT THIS ITEM IN</div>
+    <div class="box-number" id="box-number">Box --</div>
+  </div>
+</div>
+
+<div class="toggle-row" id="toggle-full" onclick="toggleBoxFull()">
+      <div class="toggle-box" id="box-full-check"></div>
+      <div><div class="toggle-title">Box is full</div><div class="toggle-desc">Next item in this category starts a new box</div></div>
+    </div>
+    <div class="toggle-row" id="toggle-review" onclick="toggleReview()">
+      <div class="toggle-box" id="review-check"></div>
+      <div><div class="toggle-title">Needs human review</div><div class="toggle-desc">Flag for double-checking</div></div>
+    </div>
+    <button class="btn-primary mt-24" onclick="submitEntry()">Confirm & Submit</button>
+    <button class="btn-secondary" style="margin-top:10px" onclick="backToForm()">← Back to Edit</button>
+  </div>
+</div>
+
+<!-- SUBMITTING -->
+<div id="screen-submitting" class="screen hidden">
+  <div class="header"><div class="header-left"><div class="header-logo"><svg width="26" height="26"><use href="#b4p-logo-white"/></svg><span class="header-title">Submitting...</span></div></div></div>
+  <div class="body center"><div class="spinner"></div><p style="color:var(--b4p-slate);margin-top:16px;font-size:15px;font-weight:500;">Writing to sheet...</p></div>
+</div>
+
+<!-- SUCCESS -->
+<div id="screen-success" class="screen hidden">
+  <div class="header">
+    <div class="header-left">
+      <div class="header-logo"><svg width="26" height="26"><use href="#b4p-logo-white"/></svg><span class="header-title">B4P Inventory</span></div>
+      <div class="header-divider"></div>
+      <div class="badge" id="hdr3-pallet"></div>
+      <div class="badge" id="hdr3-section"></div>
+      <div class="badge badge-green" id="hdr3-count"></div>
+    </div>
+    <button class="gear-btn" onclick="showSetup()"><svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></button>
+  </div>
+  <div class="body" style="text-align:center;padding-top:40px;">
+    <div class="success-icon"><svg width="52" height="52" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg></div>
+    <h2 class="success-title">Item Logged</h2>
+    <div class="success-badges" id="success-badges"></div>
+    <div id="success-full-note" class="full-note hidden"></div>
+    <button class="btn-primary" style="margin-top:32px" onclick="nextItem()">Next Item →</button>
+  </div>
+</div>
+
+<script>
+var state = {
+  palletNumber: localStorage.getItem("inv_pallet") || "",
+  section: localStorage.getItem("inv_section") || "A",
+  imageBase64: null, imageDataUrl: null, quantity: "", expiration: "",
+  aiResult: null, selectedCategory: "", selectedSubcategory: "",
+  boxFull: false, needsReview: false, sessionCount: 0, lastBoxNumber: null,
+  catEditing: false, catOverridden: false,
+};
+// Must match CONFIG.CATEGORIES in Code.gs (same codes, same order)
+var CATEGORIES = [
+  { code: "TC/RC", color: "#0069f3" },
+  { code: "ER", color: "#dc2626" },
+  { code: "DME", color: "#373c82" },
+  { code: "ST/N", color: "#0035a2" },
+  { code: "PH/PPE", color: "#000e3f" },
+  { code: "Other", color: "#6b7280" },
+];
+var checkSvg = '<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>';
+
+function showScreen(id) {
+  var s = document.querySelectorAll(".screen");
+  for (var i = 0; i < s.length; i++) s[i].classList.add("hidden");
+  document.getElementById("screen-" + id).classList.remove("hidden");
+}
+function updateHeaders() {
+  ["hdr-pallet","hdr2-pallet","hdr3-pallet"].forEach(function(id) { var e = document.getElementById(id); if (e) e.textContent = "P" + state.palletNumber; });
+  ["hdr-section","hdr2-section","hdr3-section"].forEach(function(id) { var e = document.getElementById(id); if (e) { e.textContent = "Sec " + state.section; e.className = "badge " + (state.section === "A" ? "badge-sec-a" : "badge-sec-b"); } });
+  ["hdr-count","hdr3-count"].forEach(function(id) { var e = document.getElementById(id); if (e) { if (state.sessionCount > 0) { e.textContent = state.sessionCount + " logged"; e.classList.remove("hidden"); } else e.classList.add("hidden"); } });
+}
+function setSection(s) {
+  state.section = s;
+  document.getElementById("setup-sec-a").className = "section-btn " + (s === "A" ? "active" : "");
+  document.getElementById("setup-sec-b").className = "section-btn " + (s === "B" ? "active" : "");
+}
+function saveSetup() {
+  var p = document.getElementById("setup-pallet").value.trim();
+  if (!p) { alert("Please enter a pallet number."); return; }
+  state.palletNumber = p;
+  localStorage.setItem("inv_pallet", p);
+  localStorage.setItem("inv_section", state.section);
+  updateHeaders(); showScreen("form");
+}
+function showSetup() { document.getElementById("setup-pallet").value = state.palletNumber; setSection(state.section); showScreen("setup"); }
+function handleImage(input) {
+  var file = input.files && input.files[0]; if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      var c = document.createElement("canvas"), mx = 1024, w = img.width, h = img.height;
+      if (w > mx || h > mx) { var sc = mx / Math.max(w, h); w = Math.round(w * sc); h = Math.round(h * sc); }
+      c.width = w; c.height = h; c.getContext("2d").drawImage(img, 0, 0, w, h);
+      var du = c.toDataURL("image/jpeg", 0.7);
+      state.imageDataUrl = du; state.imageBase64 = du.split(",")[1];
+      document.getElementById("preview-img").src = du;
+      document.getElementById("camera-area").classList.add("hidden");
+      document.getElementById("preview-area").classList.remove("hidden");
+      updateAnalyzeBtn();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function retakePhoto() {
+  state.imageDataUrl = null; state.imageBase64 = null;
+  document.getElementById("file-input").value = "";
+  document.getElementById("camera-area").classList.remove("hidden");
+  document.getElementById("preview-area").classList.add("hidden");
+  updateAnalyzeBtn();
+}
+function updateAnalyzeBtn() { document.getElementById("btn-analyze").disabled = !(state.imageBase64 && document.getElementById("form-qty").value.trim()); }
+document.addEventListener("DOMContentLoaded", function() {
+  document.getElementById("form-qty").addEventListener("input", updateAnalyzeBtn);
+  if (state.palletNumber) { updateHeaders(); showScreen("form"); }
+});
+function analyzeImage() {
+  state.quantity = document.getElementById("form-qty").value.trim();
+  state.expiration = document.getElementById("form-exp").value;
+  document.getElementById("proc-thumb").src = state.imageDataUrl;
+  showScreen("processing");
+  google.script.run
+    .withSuccessHandler(function(r) { state.aiResult = r; state.selectedCategory = r.category || CATEGORIES[0].code; state.selectedSubcategory = r.subcategory || ""; state.boxFull = false; state.needsReview = false; state.catEditing = false; state.catOverridden = false; showConfirmScreen(); })
+    .withFailureHandler(function(e) { state.aiResult = { category: CATEGORIES[0].code, subcategory: "", confidence: "low", product: "Unknown" }; state.selectedCategory = CATEGORIES[0].code; state.selectedSubcategory = ""; state.catEditing = true; state.catOverridden = false; showConfirmScreen("AI failed: " + e.message + ". Select category manually."); })
+    .classifyImage(state.imageBase64);
+}
+
+// ─── CATEGORY: Locked badge / edit toggle ───
+function renderLockedCategory() {
+  var cat = CATEGORIES.find(function(c) { return c.code === state.selectedCategory; });
+  var color = cat ? cat.color : "#6b7280";
+  var badge = document.getElementById("cat-locked-badge");
+  badge.style.borderColor = color;
+  badge.style.background = color + "12";
+  badge.style.color = color;
+  badge.innerHTML = '<span class="cat-locked-check"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="' + color + '" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg></span> ' + state.selectedCategory;
+
+  var tag = document.getElementById("cat-override-tag");
+  if (state.catOverridden) tag.classList.remove("hidden");
+  else tag.classList.add("hidden");
+}
+
+function toggleCatEdit() {
+  state.catEditing = !state.catEditing;
+  var row = document.getElementById("cat-row");
+  var link = document.getElementById("cat-edit-link");
+  if (state.catEditing) {
+    row.classList.remove("hidden");
+    link.textContent = "Cancel";
+    renderCategoryChips();
+  } else {
+    row.classList.add("hidden");
+    link.textContent = "Change manually";
+  }
+}
+
+function renderCategoryChips() {
+  var row = document.getElementById("cat-row"); row.innerHTML = "";
+  for (var i = 0; i < CATEGORIES.length; i++) {
+    var cat = CATEGORIES[i], btn = document.createElement("button"); btn.className = "cat-chip"; btn.textContent = cat.code;
+    var sel = state.selectedCategory === cat.code;
+    btn.style.borderColor = sel ? cat.color : ""; btn.style.background = sel ? cat.color + "12" : ""; btn.style.color = sel ? cat.color : "";
+    btn.onclick = (function(c) { return function() {
+      var aiCat = state.aiResult ? state.aiResult.category : "";
+      state.selectedCategory = c;
+      state.catOverridden = (c !== aiCat);
+      state.catEditing = false;
+      document.getElementById("cat-row").classList.add("hidden");
+      document.getElementById("cat-edit-link").textContent = "Change manually";
+      renderLockedCategory();
+    }; })(cat.code);
+    row.appendChild(btn);
+  }
+}
+
+function showConfirmScreen(err) {
+  showScreen("confirm"); updateHeaders();
+  var errEl = document.getElementById("confirm-error");
+  if (err) { errEl.textContent = err; errEl.classList.remove("hidden"); } else errEl.classList.add("hidden");
+  document.getElementById("conf-thumb").src = state.imageDataUrl;
+  document.getElementById("conf-product").textContent = state.aiResult.product || "Product";
+  var m = "Qty: " + state.quantity; if (state.expiration) m += " · Exp: " + state.expiration;
+  document.getElementById("conf-meta").textContent = m;
+  var h = "";
+  if (state.aiResult.confidence) h += '<span class="confidence conf-' + state.aiResult.confidence + '">' + state.aiResult.confidence + ' confidence</span>';
+  if (state.selectedSubcategory) h += ' <span class="confidence" style="background:var(--b4p-ice);color:var(--b4p-deep);">' + state.selectedSubcategory + '</span>';
+  document.getElementById("conf-confidence").innerHTML = h;
+
+  // Category: show locked or expanded based on state
+  renderLockedCategory();
+  var row = document.getElementById("cat-row");
+  var link = document.getElementById("cat-edit-link");
+  if (state.catEditing) {
+    row.classList.remove("hidden");
+    link.textContent = "Cancel";
+    renderCategoryChips();
+  } else {
+    row.classList.add("hidden");
+    link.textContent = "Change manually";
+  }
+
+  state.boxFull = false; state.needsReview = false; renderToggles();
+}
+
+function toggleBoxFull() { state.boxFull = !state.boxFull; renderToggles(); }
+function toggleReview() { state.needsReview = !state.needsReview; renderToggles(); }
+function renderToggles() {
+  var fr = document.getElementById("toggle-full"), fc = document.getElementById("box-full-check");
+  fr.className = "toggle-row" + (state.boxFull ? " active-amber" : "");
+  fc.style.borderColor = state.boxFull ? "#f59e0b" : ""; fc.style.background = state.boxFull ? "#f59e0b" : ""; fc.innerHTML = state.boxFull ? checkSvg : "";
+  var rr = document.getElementById("toggle-review"), rc = document.getElementById("review-check");
+  rr.className = "toggle-row" + (state.needsReview ? " active-red" : "");
+  rc.style.borderColor = state.needsReview ? "#ef4444" : ""; rc.style.background = state.needsReview ? "#ef4444" : ""; rc.innerHTML = state.needsReview ? checkSvg : "";
+}
+function backToForm() { showScreen("form"); }
+function submitEntry() {
+  showScreen("submitting");
+  var ai = state.aiResult || {};
+  google.script.run
+    .withSuccessHandler(function(r) { if (r.success) { state.lastBoxNumber = r.boxNumber; state.sessionCount++; showSuccessScreen(); } else showConfirmScreen("Failed: " + (r.error || "Unknown")); })
+    .withFailureHandler(function(e) { showConfirmScreen("Network error: " + e.message); })
+    .submitEntry({
+      imageBase64: state.imageBase64, quantity: state.quantity, expiration: state.expiration,
+      palletNumber: state.palletNumber, category: state.selectedCategory,
+      subcategory: state.selectedSubcategory || "", section: state.section,
+      boxFull: state.boxFull, needsReview: state.needsReview,
+      product: ai.product || "", manufacturer: ai.manufacturer || "",
+      general: ai.general || "", lotNumber: ai.lotNumber || "", notes: ai.notes || "",
+    });
+}
+function showSuccessScreen() {
+  showScreen("success"); updateHeaders();
+  var cat = CATEGORIES.find(function(c) { return c.code === state.selectedCategory; });
+  var b = document.getElementById("success-badges"); b.innerHTML = "";
+  var cb = document.createElement("span"); cb.className = "badge"; cb.style.background = (cat ? cat.color : "#6b7280") + "20"; cb.style.color = cat ? cat.color : "#6b7280"; cb.textContent = state.selectedCategory; b.appendChild(cb);
+  if (state.lastBoxNumber != null) { var bb = document.createElement("span"); bb.className = "badge"; bb.textContent = "Box " + state.lastBoxNumber; b.appendChild(bb); }
+  var qb = document.createElement("span"); qb.className = "badge"; qb.textContent = "Qty " + state.quantity; b.appendChild(qb);
+  var fn = document.getElementById("success-full-note");
+  if (state.boxFull) { fn.textContent = "Box marked full — next " + state.selectedCategory + " item starts a new box"; fn.classList.remove("hidden"); } else fn.classList.add("hidden");
+}
+function nextItem() {
+  state.imageBase64 = null; state.imageDataUrl = null; state.aiResult = null;
+  state.selectedCategory = ""; state.selectedSubcategory = ""; state.boxFull = false; state.needsReview = false; state.lastBoxNumber = null;
+  state.catEditing = false; state.catOverridden = false;
+  document.getElementById("file-input").value = ""; document.getElementById("form-qty").value = ""; document.getElementById("form-exp").value = "";
+  document.getElementById("camera-area").classList.remove("hidden"); document.getElementById("preview-area").classList.add("hidden");
+  document.getElementById("btn-analyze").disabled = true; updateHeaders(); showScreen("form");
+}
+if (!Array.prototype.find) { Array.prototype.find = function(fn) { for (var i = 0; i < this.length; i++) if (fn(this[i])) return this[i]; }; }
+if (!Array.prototype.forEach) { Array.prototype.forEach = function(fn) { for (var i = 0; i < this.length; i++) fn(this[i], i); }; }
+</script>
+</body>
+</html>
