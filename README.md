@@ -45,7 +45,7 @@ The other tabs (`Final Inventorying`, `BoxCounters`, `Shipment Log` and the pack
 
 ### 3. Get a Gemini API key
 
-Create a free key at [Google AI Studio](https://aistudio.google.com/apikey).
+Create a key at [Google AI Studio](https://aistudio.google.com/apikey). It works on the free tier right away. For a real inventory drive, see [API & cost breakdown](#api--cost-breakdown) for deciding whether to enable billing.
 
 ### 4. Store the key securely
 
@@ -69,6 +69,90 @@ The code reads the key from Script Properties at runtime, so it never appears in
 ### 6. (Optional) Shipment Manager sidebar
 
 `Code.gs` adds a **Shipments** menu to the spreadsheet. Its "Open Shipment Manager" item expects an HTML file named `Sidebar`, which is **not included in this repo**. The "View Box Counters" and "Reset Box Counters" menu items work without it. If you want the sidebar, create a `Sidebar` HTML file that calls the public functions in the Shipment Manager section of `Code.gs` (`getShipments`, `createShipment`, `assignSelectedToShipment`, `unassignSelected`, `updateShipmentStatus`, `deleteShipment`, `selectShipmentItems`, `getShipmentSummary`, `openPackingList`) through `google.script.run`.
+
+---
+
+## API & cost breakdown
+
+### Which APIs are used
+
+| Service | Used for | Cost |
+|---|---|---|
+| **Google Gemini API** | Reading the label photo and classifying the item (`classifyImage()`) | **The only paid part** (see below) |
+| Google Apps Script | Hosting the web app and running the code | Free |
+| Google Sheets | Storing inventory rows | Free |
+| Google Drive | Storing item photos | Free, within your Drive storage (15 GB on a free Google account) |
+
+### How the Gemini call works
+
+Each time a volunteer taps **Analyze & Continue**, the app makes exactly **one** API call:
+
+1. The phone shrinks the photo to at most 1024 px and compresses it as a JPEG (in `handleImage()` in `Index.html`), then sends it to Apps Script.
+2. `classifyImage()` in `Code.gs` reads `GEMINI_API_KEY` from Script Properties and sends the image plus the prompt to:
+   ```
+   POST https://generativelanguage.googleapis.com/v1beta/models/{CONFIG.GEMINI_MODEL}:generateContent
+   ```
+   with `responseMimeType: "application/json"`, `maxOutputTokens: 1024` and `thinkingLevel: "low"`.
+3. Gemini returns JSON like:
+   ```json
+   {"category":"DME","subcategory":"Airway & Oxygen","confidence":"high",
+    "manufacturer":"Medline","product":"Nasal Cannula, Adult, 7ft","general":"nasal cannula",
+    "lotNumber":"23A114","notes":"Adult cannula with 7 ft tubing; lot printed on the side."}
+   ```
+4. The code checks that the category and subcategory are in your lists and replaces invalid values with a fallback before the volunteer sees the result.
+
+Submitting an entry does **not** call Gemini. It only writes to Sheets and Drive. Retaking a photo and analyzing it again counts as a second call.
+
+The key stays server-side in Apps Script. Volunteers' phones never see it.
+
+### Cost per item
+
+Prices below are Google's published rates for **`gemini-3.8-flash`** (the default in `CONFIG.GEMINI_MODEL`), checked October 2026:
+
+| | Through Dec 31, 2026 | From Jan 1, 2027 |
+|---|---|---|
+| Input (text + image), per 1M tokens | $0.75 | $1.50 |
+| Output (including thinking), per 1M tokens | $3.75 | $7.50 |
+
+Estimated tokens for **one** scan:
+
+| Part | Tokens (approx.) |
+|---|---|
+| Photo (Gemini 3.x default image resolution) | ~1,120 |
+| Prompt text | ~900 |
+| **Total input** | **~2,000** |
+| Output JSON + "low" thinking | ~300–700 (hard cap 1,024) |
+
+| | 2026 price | 2027 price |
+|---|---|---|
+| **Per item (typical)** | ~$0.003 | ~$0.007 |
+| **Per item (worst case, output hits the 1,024 cap)** | ~$0.005 | ~$0.011 |
+| **1,000 items** | **~$3–5** | **~$7–11** |
+| **10,000 items** | ~$34–53 | ~$68–107 |
+
+So a full inventory drive of a few thousand items costs **roughly the price of a pizza**. These are estimates: check the actual usage in [AI Studio](https://aistudio.google.com/usage) after your first few hundred scans.
+
+### Free tier vs. paid tier
+
+- **Free tier:** no billing needed. You can use it to try the app out and run small sessions. Rate limits apply (requests per minute and per day, which vary by model; view yours in AI Studio). When you hit a limit, the volunteer sees "AI failed" and can pick a category by hand. **On the free tier, Google may use your prompts and images to improve its products**, so don't use it for anything sensitive. See the [Gemini API terms](https://ai.google.dev/gemini-api/terms).
+- **Paid tier:** enable billing on the key's Google Cloud project in AI Studio. You get much higher rate limits, which matter when several volunteers scan at once, and your data isn't used for product improvement. Set a **budget alert** in Google Cloud Billing so you're never surprised.
+
+### Lowering the cost
+
+| Option | How | Trade-off |
+|---|---|---|
+| Use a cheaper model | Set `CONFIG.GEMINI_MODEL` to `gemini-3.1-flash-lite` ($0.25 input / $1.50 output per 1M tokens, about **$1.25 per 1,000 items**) | Somewhat less accurate on blurry or small-print labels |
+| Lower the image resolution | Add `mediaResolution: "MEDIA_RESOLUTION_LOW"` to `generationConfig` (~280 image tokens instead of ~1,120) | Lot numbers and fine print may be missed |
+| Shorten the output | Lower `maxOutputTokens`, or drop fields you don't need (e.g. `notes`) from the prompt | Less detail in the sheet |
+| Fewer retries | Train volunteers to take one clear, well-lit photo | n/a |
+
+Prices change: check the [Gemini pricing page](https://ai.google.dev/gemini-api/docs/pricing) before a big drive.
+
+### Apps Script & Drive limits (free)
+
+- **Photos:** each compressed photo is about 100–250 KB, so 1,000 photos take roughly 150–250 MB of the deploying account's Drive.
+- **Apps Script quotas:** external API calls (`UrlFetchApp`) are capped per day, at about 20,000 for consumer Gmail accounts and higher for Google Workspace. That's far more than a typical drive needs. See [Apps Script quotas](https://developers.google.com/apps-script/guides/services/quotas).
+- All usage counts against the account that **deployed** the web app ("Execute as: Me"), not the volunteers' accounts.
 
 ---
 
