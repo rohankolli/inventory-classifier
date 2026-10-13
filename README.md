@@ -4,6 +4,12 @@ A mobile-friendly web app for logging donated or warehouse inventory. Volunteers
 
 Originally built for **Blueprints for Pangaea (B4P)** to sort medical supplies. The categories, prompt and branding can all be swapped out for any inventory you want to sort: food bank donations, school supplies, clothing, lab equipment, and so on.
 
+## 🎥 Demo
+
+[![Watch the demo](https://img.youtube.com/vi/hb6aFxADahU/hqdefault.jpg)](https://youtu.be/hb6aFxADahU)
+
+▶️ [Watch the video demo on YouTube](https://youtu.be/hb6aFxADahU)
+
 > **No API key is included in this repo.** You supply your own Gemini key through Apps Script's Script Properties (see setup step 4). Never paste a key into `Code.gs` before committing it anywhere.
 
 ---
